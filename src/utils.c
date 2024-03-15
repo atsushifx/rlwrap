@@ -863,6 +863,25 @@ bool create_writable_directory(const char *dir)
     mode_t oldmask = umask(0);
     int    ret;
 
+    if (strcmp(dir, "") == 0 || strcmp(dir, "/") == 0) {
+        myerror(WARNING | USE_ERRNO, "invalid directory: %s", dir);
+        return false;
+    }
+    if (strcmp(dir, ".") == 0) {
+        return true;
+    }
+    const char *lastdir = mybasename(dir);
+    if ((strcmp(lastdir, "") == 0) || (strcmp(lastdir, ".") == 0) || (strcmp(lastdir, "..") == 0)) {
+        myerror(WARNING | USE_ERRNO, "invalid directory: %s", dir);
+        return false;
+    }
+
+    // ctreate directory main
+    const char *basedir = mydirname(dir);
+    if (!is_directory_exist(basedir)) {
+        return create_writable_directory(basedir);
+    }
+
     ret = (mkdir(dir, 0700) == 0);
     umask(oldmask);
     return ret;
